@@ -2,29 +2,68 @@ import numpy as np
 import random
 
 def fitness(chromosome):
-    """
-    chromosome: list or np.array of length 10
-      - chromosome[0] should be integer 0..4 (subscription tier)
-      - chromosome[1:] should be floats in [0,1]
-    returns: scalar fitness (higher is better)
-    """
-    # weights (as described above)
-    w = [0.6, 0.0, 0.9, 1.1, 0.8, 0.7, 0.95, 1.3, 0.4, 1.5]
-    w_s = 1.2
-    w_p = 1.8
-    theta = 0.7
-
-    # normalize
     x = list(chromosome)
-    x1_norm = x[0] / 3.0
-    x_norm = [x1_norm] + [float(max(0.0, min(1.0, xi))) for xi in x[1:10]]  # clip to [0,1]
+    
+    w = [10, 50, 200, 5, 20, 15, 300, 25, 100, 3]
 
-    base = sum(wi * xi for wi, xi in zip(w, x_norm))
-    synergy = w_s * x_norm[7] * x_norm[9]   # x8 * x10 (0-based indices 7 and 9)
-    caffeine = x_norm[1]
-    penalty = w_p * max(0.0, caffeine - theta) ** 2
+    base = sum(w[i] * x[i] for i in range(10))
 
-    return base + synergy - penalty
+    bonus = 0.5 * (x[3] * x[7])
+
+    if x[1] > 0.8 and x[5] < 4.0:
+        penalty = 500
+    else:
+        penalty = 0
+
+    return base + bonus - penalty
+
+def calculate_theoretical_max():
+
+    x = [
+        3,      # x1: Subscription Tier (Max 3)
+        1.0,    # x2: Caffeine (Max 1.0)
+        1.0,    # x3: Carry Index (Max 1.0)
+        100,    # x4: Shape-Shifting (Max 100)
+        5,      # x5: Big Tech (Max 5)
+        10.0,   # x6: Deadline Warp (Max 10.0)
+        1.0,    # x7: Bug Immunity (Max 1.0)
+        10,     # x8: LLM Whisperer (Max 10)
+        1.0,    # x9: Luck (Max 1.0)
+        100     # x10: Visibility (Max 100)
+    ]
+
+    # 2. Define Weights from the description
+    # x1(10), x2(50), x3(200), x4(5), x5(20), x6(15), x7(300), x8(25), x9(100), x10(3)
+    weights = [10, 50, 200, 5, 20, 15, 300, 25, 100, 3]
+
+    # 3. Calculate Base Score: Sum(Weight * Value)
+    base_score = sum(w * val for w, val in zip(weights, x))
+
+    # 4. Calculate Synergy Bonus
+    # Formula: 0.5 * (x4 * x8) -> Shape-Shifting * LLM Whisperer
+    synergy_bonus = 0.5 * (x[3] * x[7])
+
+    # 5. Calculate Burnout Penalty
+    # Logic: Penalty if Caffeine > 0.8 AND Deadline Resistance < 4.0
+    if x[1] > 0.8 and x[5] < 4.0:
+        penalty = 500
+    else:
+        penalty = 0
+
+    # 6. Final Theoretical Max
+    total_max = base_score + synergy_bonus - penalty
+    
+    print("--- Theoretical Max Breakdown ---")
+    print(f"Base Score:    {base_score:.2f}")
+    print(f"Synergy Bonus: +{synergy_bonus:.2f}")
+    print(f"Burnout Penalty: -{penalty:.2f}")
+    print(f"-----------------------------")
+    print(f"MAX FITNESS:   {total_max:.2f}")
+    
+    return total_max
+
+# Store this in the global variable for your GA to access
+MAX_FITNESS = calculate_theoretical_max()
 
 # 1. Traits Constraints
 TRAITS_INFO = [
@@ -134,7 +173,7 @@ def mutate(individual, rate):
 import random
 import numpy as np
 
-MAX_FITNESS = 9.45
+MAX_FITNESS = 2480
 
 def genetic_algorithm(pop_size, mutation_rate, crossover_rate, crossover_technique, selection_type, max_generation=15000):
     # 1. Map strings to functions
@@ -166,7 +205,7 @@ def genetic_algorithm(pop_size, mutation_rate, crossover_rate, crossover_techniq
         generation_count += 1
         
         # Calculate Fitness
-        fitnesses = [round(fitness(ind), 4) for ind in population]
+        fitnesses = [fitness(ind) for ind in population]
         curr_best_fit = max(fitnesses)
         curr_best_ind = population[fitnesses.index(curr_best_fit)]
         
@@ -176,7 +215,7 @@ def genetic_algorithm(pop_size, mutation_rate, crossover_rate, crossover_techniq
             global_best_ind = curr_best_ind[:]
             
             # Success Check
-            if global_best_fit >= MAX_FITNESS:
+            if round(global_best_fit, 1) >= MAX_FITNESS:
                 break
             
         # 7. Selection & Breeding
@@ -207,9 +246,9 @@ def genetic_algorithm(pop_size, mutation_rate, crossover_rate, crossover_techniq
         
         population = next_gen
     
-    if global_best_fit >= MAX_FITNESS:
+    if round(global_best_fit, 1) >= MAX_FITNESS:
         final_generations = generation_count
     else:
-        final_generations = f"Failed (Best Fitness: {global_best_fit:.4f})"
+        final_generations = f"Failed (Best Fitness: {global_best_fit:.1f})"
     
     return [mutation_rate, crossover_rate, crossover_technique, pop_size, final_generations, selection_type]

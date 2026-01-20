@@ -11,9 +11,9 @@ count = 0
 for tech in crossover_techniques:
     random.seed(42)
     result = genetic_algorithm(
-      pop_size=300,
-      mutation_rate=0.2,
-      crossover_rate=0.05,
+      pop_size=1000,
+      mutation_rate=0.05,
+      crossover_rate=0.9,
       crossover_technique=tech,
       selection_type="tournament",
     )

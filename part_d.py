@@ -12,8 +12,8 @@ for pop_size in pupulation_sizes:
     random.seed(42)
     result = genetic_algorithm(
       pop_size=pop_size,
-      mutation_rate=0.2,
-      crossover_rate=0.05,
+      mutation_rate=0.05,
+      crossover_rate=0.9,
       crossover_technique="one-point",
       selection_type="tournament",
     )

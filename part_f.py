@@ -11,10 +11,10 @@ count = 0
 for type in selection_types:
     random.seed(42)
     result = genetic_algorithm(
-      pop_size=300,
-      mutation_rate=0.2,
-      crossover_rate=0.05,
-      crossover_technique="one-point",
+      pop_size=1000,
+      mutation_rate=0.05,
+      crossover_rate=0.9,
+      crossover_technique="two-point",
       selection_type=type,
     )
     count += 1
